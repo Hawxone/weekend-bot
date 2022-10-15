@@ -22,7 +22,6 @@ const Leveling = () => {
 
     })
     client.on('levelUp', async (message, data) => {
-        console.log("user "+data.userID +"on "+data.guildID+ "level increased by 1")
 
         //const attachment = xp.rank(message,data.userID,data.guildID)
 
@@ -46,7 +45,6 @@ const Leveling = () => {
                 });
             })
 
-        console.log(att)
         message.channel.send(`Congrats! ${message.author} is now level ${data.level}`)
 
 

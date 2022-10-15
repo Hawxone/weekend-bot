@@ -185,22 +185,7 @@ const MusicPlayer = () => {
         queue.textChannel.send(`🎵 added ${song.name} to **LazyQueue**`)
     })
 
-    client.Distube.on('searchDone',(message,answer)=>{
-        let i = 0;
-        console.log(answer)
-        message.channel.send(
-            `**Choose an option from below**\n${result
-                .map(
-                    song =>
-                        `**${++i}**. ${song.name} - \`${
-                            song.formattedDuration
-                        }\``,
-                )
-                .join(
-                    '\n',
-                )}\n*Enter anything else or wait 30 seconds to cancel*`,
-        );
-    })
+
 };
 
 export default MusicPlayer;
