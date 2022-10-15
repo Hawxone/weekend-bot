@@ -7,6 +7,7 @@ export const rankCommand = new SlashCommandBuilder()
         option
             .setName('user')
             .setDescription('choose user rank')
+            .setRequired(true)
     )
 
 export default rankCommand.toJSON()
