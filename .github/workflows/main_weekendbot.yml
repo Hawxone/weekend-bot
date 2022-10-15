@@ -24,8 +24,6 @@ jobs:
       - name: npm install, build, and test
         run: |
           npm install
-          npm run build --if-present
-          npm run test --if-present
         env:
           BOT_TOKEN: ${{secrets.BOT_TOKEN }}
           DATABASE_TOKEN: ${{ secrets.DATABASE_TOKEN }}  
