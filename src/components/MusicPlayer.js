@@ -27,7 +27,7 @@ const MusicPlayer = () => {
 
                     const voiceChannel = await interaction.member?.voice?.channel;
                     if (voiceChannel){
-                         client.Distube.play(interaction.member.voice.channel,interaction.options.get("song").value,{
+                         const song = await client.Distube.play(interaction.member.voice.channel,interaction.options.get("song").value,{
                             member:interaction.member,
                             textChannel:interaction.channel,
                             interaction
