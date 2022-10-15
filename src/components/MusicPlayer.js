@@ -175,7 +175,6 @@ const MusicPlayer = () => {
     })
 
 
-
     client.Distube.on('playSong',(queue,song)=>{
         queue.textChannel.send(`🎵 playing **${song.name}**`)
 
