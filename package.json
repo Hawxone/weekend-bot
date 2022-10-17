@@ -23,6 +23,7 @@
     "distube": "^4.0.4",
     "dotenv": "^16.0.3",
     "ffmpeg-static": "^4.4.1",
+    "genius-lyrics": "^4.4.0",
     "libsodium-wrappers": "^0.7.10",
     "mongoose": "^6.6.5",
     "simply-xp": "^1.3.4"

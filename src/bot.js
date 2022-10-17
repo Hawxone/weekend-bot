@@ -18,6 +18,7 @@ import Leveling from "./components/Leveling.js";
 import {rankCommand} from "./commands/rank.js";
 import Rank from "./components/Rank.js";
 import searchCommand from "./commands/musicCommands/search.js";
+import lyricsCommand from "./commands/musicCommands/lyrics.js";
 
 
 //database & token config
@@ -62,7 +63,8 @@ client.once("ready",()=>{
         repeatCommand,
         animeCommand,
         rankCommand,
-        searchCommand
+        searchCommand,
+        lyricsCommand
     ].map(command=>command.toJSON());
 
     //register commands

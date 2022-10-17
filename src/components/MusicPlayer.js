@@ -1,5 +1,8 @@
 import client from "../config/client.js";
 import {DisTube} from "distube";
+import Genius from "genius-lyrics"
+
+import {EmbedBuilder as MessageEmbed} from "discord.js";
 
 
 const MusicPlayer = () => {
@@ -11,6 +14,8 @@ const MusicPlayer = () => {
         emitAddListWhenCreatingQueue: false,
         searchSongs:5
     })
+
+    let result=undefined;
 
 
     client.on('interactionCreate',async (interaction)=>{
@@ -110,70 +115,89 @@ const MusicPlayer = () => {
 
                     break;
                case "search":
-                    let result = await client.Distube.search(interaction.options.get("song").value,{
-                        limit:5
-                    });
-                    let i=0;
-                    interaction.reply(
-                        `**Choose an option from below**\n${result
-                            .map(
-                                song =>
-                                    `**${++i}**. ${song.name} - \`${
-                                        song.formattedDuration
-                                    }\``,
-                            )
-                            .join(
-                                '\n',
-                            )}\n*Enter number 1 to 5*`,
-                    )
 
-                        client.on('messageCreate',async (message)=>{
-                            if (message.author.bot) return;
-                            if (!message.guild) return;
+                       result = await client.Distube.search(interaction.options.get("song").value,{
+                           limit:5
+                       });
+                       let i=0;
+                       interaction.reply(
+                           `**Choose an option from below**\n${result
+                               .map(
+                                   song =>
+                                       `**${++i}**. ${song.name} - \`${
+                                           song.formattedDuration
+                                       }\``,
+                               )
+                               .join(
+                                   '\n',
+                               )}\n*Enter number 1 to 5*`,
+                       )
 
-                            if(message.content.length===1 && !message.content.match(/[a-z]/i)){
+                    break;
+                case "lyrics":
 
-                                if (message.content >5 ){
-                                    result=[]
-                                    message.channel.send({
-                                        content:"enter number from 1 to 5"
-                                    })
-                                }else {
-                                    const res = result[Number(message.content-1)]
+                    const query = interaction.options.get("song").value
+                    const api = new Genius.Client("Swr1Mgfij2ghTD4LfC7I3aHcElkWve2hyw9dZW1q7oL_R4cAQavIoRUz1RvTwi3A")
 
-                                    if (res){
-                                        const voiceChannel = message.member?.voice?.channel;
-                                        if (voiceChannel){
-                                            client.Distube.play(interaction.member.voice.channel,res,{
-                                                member:interaction.member,
-                                                textChannel:interaction.channel,
-                                                interaction
-                                            })
-                                            result=[]
-                                        }else{
-                                            message.channel.send(
-                                                'You must join a voice channel first.',
-                                            );
-                                            result=[]
-                                        }
+                    const song = await api.songs.search(query)
+                    const firstSong = song[0];
+                    let lyrics = await firstSong.lyrics()
 
+                    if (lyrics.length>2000){
+                        lyrics = lyrics.substring(0, 2000)
+                    }
 
-                                    }else {
-                                        result=[]
-                                    }
-
-                                }
-                            }else {
-
-                            }
-
-
-                        })
-
+                    await interaction.reply({
+                        content:lyrics
+                    })
                     break;
             }
 
         }
+    })
+
+
+    client.on('messageCreate',async (message)=>{
+
+        if (message.author.bot) return;
+        if (!message.guild) return;
+
+        if(message.content.length===1 && !message.content.match(/[a-z]/i)){
+
+            if (message.content >5 ){
+                result=[]
+                message.channel.send({
+                    content:"enter number from 1 to 5"
+                })
+            }else {
+                const res = result[Number(message.content-1)]
+
+                if (res){
+                    const voiceChannel = message.member?.voice?.channel;
+                    if (voiceChannel){
+                        await client.Distube.play(message.member?.voice?.channel, res, {
+                            member: message.member,
+                            textChannel: message.channel,
+                            message
+                        })
+                        result=[]
+                    }else{
+                        message.channel.send(
+                            'You must join a voice channel first.',
+                        );
+                        result=[]
+                    }
+
+
+                }else {
+                    result=[]
+                }
+
+            }
+        }else {
+            result=[]
+        }
+
     })
 
 
