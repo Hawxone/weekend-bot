@@ -5,7 +5,7 @@ export const repeatCommand = new SlashCommandBuilder()
     .setDescription('repeat cmd')
     .addStringOption(option=>
         option.setName('mode')
-            .setDescription('repeatmode')
+            .setDescription('repeat modes')
             .setRequired(true)
             .setChoices(
                 {

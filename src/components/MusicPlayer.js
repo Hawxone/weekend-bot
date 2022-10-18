@@ -2,7 +2,7 @@ import client from "../config/client.js";
 import {DisTube} from "distube";
 import Genius from "genius-lyrics"
 
-import {EmbedBuilder as MessageEmbed} from "discord.js";
+import {ActionRowBuilder, ButtonBuilder, EmbedBuilder as MessageEmbed, ButtonStyle} from "discord.js";
 import queue from "../commands/musicCommands/queue.js";
 
 
@@ -23,7 +23,41 @@ const MusicPlayer = () => {
     const GENIUS_TOKEN = process.env.GENIUS_TOKEN
 
 
+
+
+
     client.on('interactionCreate',async (interaction)=>{
+        if (!interaction.isButton()) return;
+        if(!result) {
+            await interaction.reply(`🎵 This option has time out.`);
+            return;
+        }
+
+        const voiceChannel = interaction.member?.voice?.channel;
+        if (voiceChannel){
+            await client.Distube.play(interaction.member?.voice?.channel, result[parseInt(interaction.customId)-1], {
+                member: interaction.member,
+                textChannel: interaction.channel,
+                interaction
+            })
+            result=undefined
+            await interaction.reply(`🎵 Option ${interaction.customId} chosen`);
+
+        }else{
+            await interaction.editReply({
+                content: '🎵 You must join a voice channel first.',
+            });
+            result=[]
+        }
+
+
+    })
+
+
+    client.on('interactionCreate',async (interaction)=>{
+
+
+
         const queue = client.Distube.getQueue(interaction);
 
         if(interaction.isChatInputCommand()){
@@ -125,8 +159,11 @@ const MusicPlayer = () => {
                            limit:5
                        });
                        let i=0;
-                       interaction.reply(
-                           `**Choose an option from below**\n${result
+
+                       const searchEmbed = new MessageEmbed()
+                           .setTitle("**Choose an option from below**")
+                           .setColor("Red")
+                           .setDescription(`${result
                                .map(
                                    song =>
                                        `**${++i}**. ${song.name} - \`${
@@ -134,11 +171,53 @@ const MusicPlayer = () => {
                                        }\``,
                                )
                                .join(
+                                   '\n' +
                                    '\n',
-                               )}\n*Enter number 1 to 5 within 30 seconds*`,
+                               )}\n**Choose 1 to 5 within 30 seconds**`)
+
+                   const button1 = new ButtonBuilder()
+                       .setCustomId("1")
+                       .setLabel('1️⃣')
+                       .setStyle(ButtonStyle.Secondary)
+
+                   const button2 = new ButtonBuilder()
+                       .setCustomId("2")
+                       .setLabel('2️⃣')
+                       .setStyle(ButtonStyle.Secondary)
+
+                   const button3 = new ButtonBuilder()
+                       .setCustomId("3")
+                       .setLabel('3️⃣')
+                       .setStyle(ButtonStyle.Secondary)
+
+                   const button4 = new ButtonBuilder()
+                       .setCustomId("4")
+                       .setLabel('4️⃣')
+                       .setStyle(ButtonStyle.Secondary)
+
+                   const button5 = new ButtonBuilder()
+                       .setCustomId("5")
+                       .setLabel('5️⃣')
+                       .setStyle(ButtonStyle.Secondary)
+
+
+                        const searchButtons = new ActionRowBuilder()
+                            .addComponents(button1)
+                            .addComponents(button2)
+                            .addComponents(button3)
+                            .addComponents(button4)
+                            .addComponents(button5)
+
+
+                       interaction.reply({
+                           embeds:[searchEmbed],
+                           components:[searchButtons]
+                           }
                        ).then(()=>{
-                           setTimeout(()=>result=[],30000)
+                           setTimeout(()=>result=undefined,30000)
                        })
+
+
 
                     break;
                 case "lyrics":
@@ -148,7 +227,6 @@ const MusicPlayer = () => {
 
                     const song = await api.songs.search(query)
                     const firstSong = song[0];
-                    console.log(firstSong)
                     let lyrics = await firstSong.lyrics()
 
                     const embed = new MessageEmbed()
@@ -158,6 +236,7 @@ const MusicPlayer = () => {
                             name:firstSong.artist.name,
                             iconURL:firstSong.artist.thumbnail
                         })
+                        .setDescription(lyrics)
                         .setThumbnail(firstSong.image)
 
 
@@ -166,7 +245,6 @@ const MusicPlayer = () => {
                     }
 
                     await interaction.editReply({
-                        content:lyrics,
                         embeds:[embed]
                     })
                     break;
@@ -176,55 +254,30 @@ const MusicPlayer = () => {
     })
 
 
-    client.on('messageCreate',async (message)=>{
-
-        if (message.author.bot) return;
-        if (!message.guild) return;
-
-        if(message.content.length===1 && !message.content.match(/[a-z]/i)){
-
-            if (message.content >5 ){
-                result=[]
-                message.channel.send({
-                    content:"enter number from 1 to 5!"
-                })
-            }else {
-                const res = result[Number(message.content-1)]
-
-                if (res){
-                    const voiceChannel = message.member?.voice?.channel;
-                    if (voiceChannel){
-                        await client.Distube.play(message.member?.voice?.channel, res, {
-                            member: message.member,
-                            textChannel: message.channel,
-                            message
-                        })
-                        result=[]
-                    }else{
-                        message.channel.send(
-                            'You must join a voice channel first.',
-                        );
-                        result=[]
-                    }
-
-
-                }else {
-                    result=[]
-                }
-
-            }
-        }else {
-            message.channel.send({
-                content:"enter number from 1 to 5!"
-            })
-            result=[]
-        }
-
-    })
-
 
     client.Distube.on('playSong',(queue,song)=>{
-        queue.textChannel.send(`🎵 playing **${song.name}**`)
+
+        const status = (queue) => `Volume: \`${queue.volume}%\` | Loop: \`${queue.repeatMode ? queue.repeatMode === 2 ? "All Queue" : "This Song" : "Off"}\` | Autoplay: \`${queue.autoplay ? "On" : "Off"}\``
+        const playEmbed = new MessageEmbed()
+            .setColor("DarkAqua")
+            .setAuthor({name:"🎵 Now Playing"})
+            .setThumbnail(song.thumbnail)
+            .setDescription(`[${song.name}](${song.url})`)
+            .setFields(
+                {name:"Views",value:song.views.toString(),inline:true},
+                {name:"Like",value:song.likes.toString(),inline:true},
+                {name:"Duration",value:song.formattedDuration.toString(),inline:true},
+                {name:"Status",value:status(queue).toString(),inline:false}
+            )
+            .setFooter({
+                text:`Requested by ${song.user.username}`,
+                iconURL:song.user.avatarURL()
+            })
+            .setTimestamp()
+
+        queue.textChannel.send({
+            embeds:[playEmbed]
+        })
 
     })
 
@@ -237,7 +290,7 @@ const MusicPlayer = () => {
     })
 
     client.Distube.on('empty',queue=>{
-        queue.textChannel?.send(`🎵 Seems line no one is here, goodbye!`)
+        queue.textChannel?.send(`🎵 Seems like no one is here, goodbye!`)
     })
 
 
