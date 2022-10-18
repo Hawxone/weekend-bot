@@ -17,6 +17,8 @@ const MusicPlayer = () => {
 
     let result=undefined;
 
+    const GENIUS_TOKEN = process.env.GENIUS_TOKEN
+
 
     client.on('interactionCreate',async (interaction)=>{
         const queue = client.Distube.getQueue(interaction);
@@ -130,25 +132,39 @@ const MusicPlayer = () => {
                                )
                                .join(
                                    '\n',
-                               )}\n*Enter number 1 to 5*`,
-                       )
+                               )}\n*Enter number 1 to 5 within 30 seconds*`,
+                       ).then(()=>{
+                           setTimeout(()=>result=[],30000)
+                       })
 
                     break;
                 case "lyrics":
                     await interaction.deferReply();
                     const query = interaction.options.get("song").value
-                    const api = new Genius.Client("Swr1Mgfij2ghTD4LfC7I3aHcElkWve2hyw9dZW1q7oL_R4cAQavIoRUz1RvTwi3A")
+                    const api = new Genius.Client(GENIUS_TOKEN)
 
                     const song = await api.songs.search(query)
                     const firstSong = song[0];
+                    console.log(firstSong)
                     let lyrics = await firstSong.lyrics()
+
+                    const embed = new MessageEmbed()
+                        .setColor("Fuchsia")
+                        .setTitle(firstSong.title)
+                        .setAuthor({
+                            name:firstSong.artist.name,
+                            iconURL:firstSong.artist.thumbnail
+                        })
+                        .setThumbnail(firstSong.image)
+
 
                     if (lyrics.length>2000){
                         lyrics = lyrics.substring(0, 2000)
                     }
 
                     await interaction.editReply({
-                        content:lyrics
+                        content:lyrics,
+                        embeds:[embed]
                     })
                     break;
             }
@@ -167,7 +183,7 @@ const MusicPlayer = () => {
             if (message.content >5 ){
                 result=[]
                 message.channel.send({
-                    content:"enter number from 1 to 5"
+                    content:"enter number from 1 to 5!"
                 })
             }else {
                 const res = result[Number(message.content-1)]
@@ -195,6 +211,9 @@ const MusicPlayer = () => {
 
             }
         }else {
+            message.channel.send({
+                content:"enter number from 1 to 5!"
+            })
             result=[]
         }
 
