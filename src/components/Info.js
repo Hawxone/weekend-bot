@@ -8,12 +8,16 @@ const Info = () => {
 
             switch (interaction.commandName) {
                 case "help" :
+
                     interaction.reply(
                         {
                         embeds:[
                             new EmbedBuilder()
+                                .setAuthor({
+                                    name:client.user.username,iconURL:client.user.displayAvatarURL()
+                                })
                                 .setDescription('' +
-                                    'Hello! thank you for inviting Weekend Bot to your server~!\n' +
+                                    `Hello! thank you for inviting ${client.user.username} to your server~!\n` +
                                     '\n' +
                                     '**Music Commands**\n' +
                                     '\n' +
@@ -21,9 +25,10 @@ const Info = () => {
                                     '"/skip" to skip a music\n' +
                                     '"/repeat {mode}" set repeat mode\n' +
                                     '"/queue" to check queue list\n' +
-                                    '"/search {title}" to give top 5 search and choose 1 to 5 to play' +
+                                    '"/search {title}" to give top 5 search and choose 1 to 5 to play\n' +
+                                    '"/lyrics {song}" to search song lyrics\n' +
                                     '\n' +
-                                    '**Others Command**\n' +
+                                    '**Other Commands**\n' +
                                     '\n' +
                                     '"/anime {title}" to get anime detail\n' +
                                     '"/rank {username}" to get user current level and xp\n')
