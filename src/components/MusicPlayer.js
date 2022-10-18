@@ -135,7 +135,7 @@ const MusicPlayer = () => {
 
                     break;
                 case "lyrics":
-
+                    await interaction.deferReply();
                     const query = interaction.options.get("song").value
                     const api = new Genius.Client("Swr1Mgfij2ghTD4LfC7I3aHcElkWve2hyw9dZW1q7oL_R4cAQavIoRUz1RvTwi3A")
 
@@ -146,7 +146,7 @@ const MusicPlayer = () => {
                     if (lyrics.length>2000){
                         lyrics = lyrics.substring(0, 2000)
                     }
-                    await interaction.deferReply();
+
                     await interaction.editReply({
                         content:lyrics
                     })
