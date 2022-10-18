@@ -3,12 +3,15 @@ import {DisTube} from "distube";
 import Genius from "genius-lyrics"
 
 import {EmbedBuilder as MessageEmbed} from "discord.js";
+import queue from "../commands/musicCommands/queue.js";
 
 
 const MusicPlayer = () => {
 
     client.Distube = new DisTube(client,{
-        leaveOnStop: false,
+        leaveOnStop: true,
+        leaveOnEmpty:true,
+        emptyCooldown:60,
         emitNewSongOnly: true,
         emitAddSongWhenCreatingQueue: false,
         emitAddListWhenCreatingQueue: false,
@@ -227,6 +230,14 @@ const MusicPlayer = () => {
 
     client.Distube.on('addSong',(queue,song)=>{
         queue.textChannel.send(`🎵 added ${song.name} to **LazyQueue**`)
+    })
+
+    client.Distube.on('disconnect',queue=>{
+        queue.textChannel?.send(`🎵 See you later!`)
+    })
+
+    client.Distube.on('empty',queue=>{
+        queue.textChannel?.send(`🎵 Seems line no one is here, goodbye!`)
     })
 
 
