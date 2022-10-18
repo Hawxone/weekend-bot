@@ -32,7 +32,7 @@ const MusicPlayer = () => {
 
                     const voiceChannel = await interaction.member?.voice?.channel;
                     if (voiceChannel){
-                         const song = await client.Distube.play(interaction.member.voice.channel,interaction.options.get("song").value,{
+                         await client.Distube.play(interaction.member.voice.channel,interaction.options.get("song").value,{
                             member:interaction.member,
                             textChannel:interaction.channel,
                             interaction
@@ -146,8 +146,8 @@ const MusicPlayer = () => {
                     if (lyrics.length>2000){
                         lyrics = lyrics.substring(0, 2000)
                     }
-
-                    await interaction.reply({
+                    await interaction.deferReply();
+                    await interaction.editReply({
                         content:lyrics
                     })
                     break;
