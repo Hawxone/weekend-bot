@@ -1,9 +1,6 @@
 import {config} from "dotenv";
 import {REST,Routes,GatewayIntentBits,ActivityType } from "discord.js"
 import {helpCommand} from "./commands/help.js"
-import {rolesCommand} from "./commands/roles.js"
-import {userCommand} from "./commands/user.js";
-import {channelCommand} from "./commands/channel.js";
 import singCommand from "./commands/musicCommands/sing.js";
 import queueCommand from "./commands/musicCommands/queue.js";
 import skipCommand from "./commands/musicCommands/skip.js";
@@ -54,9 +51,6 @@ client.once("ready",()=>{
     //commands belong here
     const commands = [
         helpCommand,
-        rolesCommand,
-        userCommand,
-        channelCommand,
         singCommand,
         queueCommand,
         skipCommand,

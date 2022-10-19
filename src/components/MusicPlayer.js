@@ -32,7 +32,7 @@ const MusicPlayer = () => {
             await interaction.reply(`🎵 This option has time out.`);
             return;
         }
-
+        await interaction.deferReply();
         const voiceChannel = interaction.member?.voice?.channel;
         if (voiceChannel){
             await client.Distube.play(interaction.member?.voice?.channel, result[parseInt(interaction.customId)-1], {
@@ -41,7 +41,7 @@ const MusicPlayer = () => {
                 interaction
             })
             result=undefined
-            await interaction.reply(`🎵 Option ${interaction.customId} chosen`);
+            await interaction.editReply(`🎵 Option ${interaction.customId} chosen`);
 
         }else{
             await interaction.editReply({
@@ -154,7 +154,7 @@ const MusicPlayer = () => {
 
                     break;
                case "search":
-
+                        await interaction.deferReply();
                        result = await client.Distube.search(interaction.options.get("song").value,{
                            limit:5
                        });
@@ -209,7 +209,7 @@ const MusicPlayer = () => {
                             .addComponents(button5)
 
 
-                       interaction.reply({
+                       interaction.editReply({
                            embeds:[searchEmbed],
                            components:[searchButtons]
                            }
