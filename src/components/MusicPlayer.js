@@ -24,8 +24,6 @@ const MusicPlayer = () => {
 
 
 
-
-
     client.on('interactionCreate',async (interaction)=>{
         if (!interaction.isButton()) return;
         if(!result) {
@@ -49,13 +47,10 @@ const MusicPlayer = () => {
             });
             result=[]
         }
-
-
     })
 
 
     client.on('interactionCreate',async (interaction)=>{
-
 
 
         const queue = client.Distube.getQueue(interaction);
@@ -71,11 +66,19 @@ const MusicPlayer = () => {
 
                     const voiceChannel = await interaction.member?.voice?.channel;
                     if (voiceChannel){
-                         await client.Distube.play(interaction.member.voice.channel,interaction.options.get("song").value,{
+
+                       const result =  await client.Distube.play(interaction.member.voice.channel,interaction.options.get("song").value,{
                             member:interaction.member,
                             textChannel:interaction.channel,
                             interaction
                         })
+
+                        if (!result){
+                            interaction.reply({
+                                content:"no song found!"
+                            })
+                            return;
+                        }
 
                     }else {
                         await interaction.editReply({
@@ -110,12 +113,12 @@ const MusicPlayer = () => {
                             content:"🎵 no next song"
                         })
                     }else if (queue.songs.length===1){
-                        client.Distube.stop(interaction)
+                        await client.Distube.stop(interaction)
                         interaction.reply({
                             content:"🎵 song skipped, there's no song left in queue"
                         })
                     }else {
-                        client.Distube.skip(interaction)
+                        await client.Distube.skip(interaction)
                         interaction.reply({
                             content:"🎵 song skipped"
                         })
@@ -155,11 +158,20 @@ const MusicPlayer = () => {
                     break;
                case "search":
                         await interaction.deferReply();
+                        if (result){
+                            await interaction.editReply({content: "please choose options before or wait 30 seconds"})
+                            return;
+                        }
                        result = await client.Distube.search(interaction.options.get("song").value,{
                            limit:5
                        });
-                       let i=0;
 
+                        if (!result){
+                            await interaction.editReply({
+                                content:"no results found!"
+                            })
+                        }
+                       let i=0;
                        const searchEmbed = new MessageEmbed()
                            .setTitle("**Choose an option from below**")
                            .setColor("Red")
@@ -227,7 +239,18 @@ const MusicPlayer = () => {
 
                     const song = await api.songs.search(query)
                     const firstSong = song[0];
+
+                    if (!firstSong){
+                        await interaction.editReply({
+                            content:"No lyrics found!"
+                        })
+
+                        return;
+                    }
+
                     let lyrics = await firstSong.lyrics()
+
+
 
                     const embed = new MessageEmbed()
                         .setColor("Fuchsia")
