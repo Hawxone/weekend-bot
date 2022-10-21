@@ -240,7 +240,7 @@ const MusicPlayer = () => {
                     const song = await api.songs.search(query)
                     const firstSong = song[0];
 
-                    if (!firstSong){
+                    if (!firstSong || firstSong.artist.name.length>1000){
                         await interaction.editReply({
                             content:"No lyrics found!"
                         })
@@ -248,9 +248,13 @@ const MusicPlayer = () => {
                         return;
                     }
 
+
+
                     let lyrics = await firstSong.lyrics()
 
-
+                    if (lyrics.length>2000){
+                        lyrics = lyrics.substring(0, 2000)
+                    }
 
                     const embed = new MessageEmbed()
                         .setColor("Fuchsia")
@@ -263,9 +267,7 @@ const MusicPlayer = () => {
                         .setThumbnail(firstSong.image)
 
 
-                    if (lyrics.length>2000){
-                        lyrics = lyrics.substring(0, 2000)
-                    }
+
 
                     await interaction.editReply({
                         embeds:[embed]
