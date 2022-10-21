@@ -39,7 +39,7 @@ const MusicPlayer = () => {
                 interaction
             })
             result=undefined
-            await interaction.editReply(`🎵 Option ${interaction.customId} chosen`);
+            await interaction.deleteReply()
 
         }else{
             await interaction.editReply({
@@ -60,31 +60,26 @@ const MusicPlayer = () => {
             switch (interaction.commandName) {
 
                 case "sing":
-                    await interaction.reply({
-                        content:"🎵 searching for song..."
-                    })
+                    await interaction.deferReply();
 
                     const voiceChannel = await interaction.member?.voice?.channel;
                     if (voiceChannel){
 
-                       const result =  await client.Distube.play(interaction.member.voice.channel,interaction.options.get("song").value,{
+                        await client.Distube.play(interaction.member.voice.channel,interaction.options.get("song").value,{
                             member:interaction.member,
                             textChannel:interaction.channel,
                             interaction
                         })
 
-                        if (!result){
-                            interaction.reply({
-                                content:"no song found!"
-                            })
-                            return;
-                        }
+                        await interaction.deleteReply()
 
                     }else {
                         await interaction.editReply({
                             content: 'You must join a voice channel first.',
                         });
+                        return;
                     }
+
 
                     break;
                 case "queue":
@@ -249,7 +244,6 @@ const MusicPlayer = () => {
                     }
 
 
-
                     let lyrics = await firstSong.lyrics()
 
                     if (lyrics.length>2000){
@@ -267,8 +261,6 @@ const MusicPlayer = () => {
                         .setThumbnail(firstSong.image)
 
 
-
-
                     await interaction.editReply({
                         embeds:[embed]
                     })
@@ -277,7 +269,6 @@ const MusicPlayer = () => {
 
         }
     })
-
 
 
     client.Distube.on('playSong',(queue,song)=>{
