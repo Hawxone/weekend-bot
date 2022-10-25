@@ -19,6 +19,10 @@ const MusicPlayer = () => {
     })
 
     let result=undefined;
+    let curPage = 1;
+    let totalPage = 0
+    let startIndex = (curPage-1)*10;
+    let endIndex = 0
 
     const GENIUS_TOKEN = process.env.GENIUS_TOKEN
 
@@ -26,26 +30,118 @@ const MusicPlayer = () => {
 
     client.on('interactionCreate',async (interaction)=>{
         if (!interaction.isButton()) return;
-        if(!result) {
-            await interaction.reply(`🎵 This option has time out.`);
-            return;
-        }
-        await interaction.deferReply();
-        const voiceChannel = interaction.member?.voice?.channel;
-        if (voiceChannel){
-            await client.Distube.play(interaction.member?.voice?.channel, result[parseInt(interaction.customId)-1], {
-                member: interaction.member,
-                textChannel: interaction.channel,
-                interaction
-            })
-            result=undefined
-            await interaction.deleteReply()
+        const queue = client.Distube.getQueue(interaction);
+        if (interaction.customId.length==1){
+            if(!result) {
+                await interaction.reply(`🎵 This option has time out.`);
+                return;
+            }
+            await interaction.deferReply();
+            const voiceChannel = interaction.member?.voice?.channel;
+            if (voiceChannel){
+                await client.Distube.play(interaction.member?.voice?.channel, result[parseInt(interaction.customId)-1], {
+                    member: interaction.member,
+                    textChannel: interaction.channel,
+                    interaction
+                })
+                result=undefined
+                await interaction.deleteReply()
 
-        }else{
-            await interaction.editReply({
-                content: '🎵 You must join a voice channel first.',
-            });
-            result=[]
+            }else{
+                await interaction.editReply({
+                    content: '🎵 You must join a voice channel first.',
+                });
+                result=[]
+            }
+        }else {
+            if (interaction.customId==="next"){
+                await interaction.deferReply();
+                curPage = curPage+1
+                startIndex = (curPage-1)*10;
+                endIndex=Math.min(startIndex+10-1,queue.songs.length-1)
+                console.log(startIndex,endIndex)
+                const queueEmbed = new MessageEmbed()
+                    .setTitle("**Current queue:**")
+                    .setColor("Red")
+                    .setDescription(`${queue.songs
+                        .map(
+                            (song, id) =>
+                                `**${id ? id : 'Playing'}**. ${
+                                    song.name
+                                } - \`${song.formattedDuration}\``,
+                        )
+                        .slice(startIndex, endIndex)
+                        .join('\n')}`)
+                    .setFooter({
+                        text:`page ${curPage} of ${totalPage}`
+                    })
+
+                const buttonNext = new ButtonBuilder()
+                    .setCustomId("next")
+                    .setLabel('⏩')
+                    .setStyle(ButtonStyle.Secondary)
+
+                const buttonPrev = new ButtonBuilder()
+                    .setCustomId("previous")
+                    .setLabel('⏪')
+                    .setStyle(ButtonStyle.Secondary)
+
+                const queueButtons = new ActionRowBuilder()
+                    .addComponents(buttonPrev)
+                    .addComponents(buttonNext)
+
+
+                await interaction.editReply({
+                    embeds:[queueEmbed],
+                    components:[queueButtons]
+                });
+
+            }else if (interaction.customId==="previous"){
+                await interaction.deferReply();
+                curPage = curPage-1
+                startIndex = (curPage-1)*10;
+                endIndex=Math.min(startIndex+10-1,queue.songs.length-1)
+                console.log(startIndex,endIndex)
+
+                const queueEmbed = new MessageEmbed()
+                    .setTitle("**Current queue:**")
+                    .setColor("Red")
+                    .setDescription(`${queue.songs
+                        .map(
+                            (song, id) =>
+                                `**${id ? id : 'Playing'}**. ${
+                                    song.name
+                                } - \`${song.formattedDuration}\``,
+                        )
+                        .slice(startIndex, endIndex)
+                        .join('\n')}`)
+                    .setFooter({
+                        text:`page ${curPage} of ${totalPage}`
+                    })
+
+                const buttonNext = new ButtonBuilder()
+                    .setCustomId("next")
+                    .setLabel('⏩')
+                    .setStyle(ButtonStyle.Secondary)
+
+                const buttonPrev = new ButtonBuilder()
+                    .setCustomId("previous")
+                    .setLabel('⏪')
+                    .setStyle(ButtonStyle.Secondary)
+
+                const queueButtons = new ActionRowBuilder()
+                    .addComponents(buttonPrev)
+                    .addComponents(buttonNext)
+
+
+                await interaction.editReply({
+                    embeds:[queueEmbed],
+                    components:[queueButtons]
+                });
+
+
+
+            }
         }
     })
 
@@ -65,17 +161,26 @@ const MusicPlayer = () => {
                     const voiceChannel = await interaction.member?.voice?.channel;
                     if (voiceChannel){
 
-                        await client.Distube.play(interaction.member.voice.channel,interaction.options.get("song").value,{
-                            member:interaction.member,
-                            textChannel:interaction.channel,
-                            interaction
-                        })
+                        try {
+                            const res= await client.Distube.play(interaction.member.voice.channel,interaction.options.get("song").value,{
+                                member:interaction.member,
+                                textChannel:interaction.channel,
+                                interaction
+                            })
+
+                        }catch (e){
+
+                            await interaction.editReply({content:"🎵 Playlist added to **LazyQueue**."})
+                            return;
+
+                        }
 
                         await interaction.deleteReply()
 
+
                     }else {
                         await interaction.editReply({
-                            content: 'You must join a voice channel first.',
+                            content: '🎵 You must join a voice channel first.',
                         });
                         return;
                     }
@@ -83,21 +188,53 @@ const MusicPlayer = () => {
 
                     break;
                 case "queue":
+                    await interaction.deferReply()
+
                     if (!queue){
-                        interaction.reply({
-                            content:"🎵 Nothing to play right now"
+
+                        await interaction.editReply({
+                            content: "🎵 Nothing to play right now"
                         })
                     }else {
-                        interaction.reply({
-                            content:`🎵 Current queue:\n${queue.songs
+
+                        curPage=1
+                        totalPage=Math.ceil(queue.songs.length/10);
+                        endIndex=Math.min(startIndex+10-1,queue.songs.length-1)
+                        console.log(startIndex,endIndex)
+
+                        const buttonNext = new ButtonBuilder()
+                            .setCustomId("next")
+                            .setLabel('⏩')
+                            .setStyle(ButtonStyle.Secondary)
+
+                        const buttonPrev = new ButtonBuilder()
+                            .setCustomId("previous")
+                            .setLabel('⏪')
+                            .setStyle(ButtonStyle.Secondary)
+
+                        const queueButtons = new ActionRowBuilder()
+                            .addComponents(buttonPrev)
+                            .addComponents(buttonNext)
+
+                        const queueEmbed = new MessageEmbed()
+                            .setTitle("**🎵 Current queue:**")
+                            .setColor("Red")
+                            .setDescription(`${queue.songs
                                 .map(
                                     (song, id) =>
                                         `**${id ? id : 'Playing'}**. ${
                                             song.name
                                         } - \`${song.formattedDuration}\``,
                                 )
-                                .slice(0, 10)
-                                .join('\n')}`,
+                                .slice(0, 9)
+                                .join('\n')}`)
+                            .setFooter({
+                                text:`page ${curPage} of ${totalPage}`
+                            })
+
+                        await interaction.editReply({
+                            embeds: [queueEmbed],
+                            components: [queueButtons]
                         })
                     }
                     break;
@@ -154,7 +291,7 @@ const MusicPlayer = () => {
                case "search":
                         await interaction.deferReply();
                         if (result){
-                            await interaction.editReply({content: "please choose options before or wait 30 seconds"})
+                            await interaction.editReply({content: "🎵 please choose options before or wait 30 seconds"})
                             return;
                         }
                        result = await client.Distube.search(interaction.options.get("song").value,{
@@ -168,7 +305,7 @@ const MusicPlayer = () => {
                         }
                        let i=0;
                        const searchEmbed = new MessageEmbed()
-                           .setTitle("**Choose an option from below**")
+                           .setTitle("**🎵 Choose an option from below**")
                            .setColor("Red")
                            .setDescription(`${result
                                .map(
@@ -237,7 +374,7 @@ const MusicPlayer = () => {
 
                     if (!firstSong || firstSong.artist.name.length>1000){
                         await interaction.editReply({
-                            content:"No lyrics found!"
+                            content:"🎵 No lyrics found!"
                         })
 
                         return;
@@ -300,6 +437,14 @@ const MusicPlayer = () => {
     client.Distube.on('addSong',(queue,song)=>{
         queue.textChannel.send(`🎵 added ${song.name} to **LazyQueue**`)
     })
+
+    client.Distube.on('addList', (queue, playlist) =>
+        queue.textChannel?.send(
+            `Added \`${playlist.name}\` playlist (${
+                playlist.songs.length
+            } songs) to queue\n${status(queue)}`,
+        ),
+    )
 
     client.Distube.on('disconnect',queue=>{
         queue.textChannel?.send(`🎵 See you later!`)
