@@ -26,8 +26,6 @@ const MusicPlayer = () => {
 
     const GENIUS_TOKEN = process.env.GENIUS_TOKEN
 
-
-
     client.on('interactionCreate',async (interaction)=>{
         if (!interaction.isButton()) return;
         const queue = client.Distube.getQueue(interaction);
@@ -70,7 +68,7 @@ const MusicPlayer = () => {
                                     song.name
                                 } - \`${song.formattedDuration}\``,
                         )
-                        .slice(startIndex, endIndex)
+                        .slice(startIndex, endIndex+1)
                         .join('\n')}`)
                     .setFooter({
                         text:`page ${curPage} of ${totalPage}`
@@ -86,15 +84,34 @@ const MusicPlayer = () => {
                     .setLabel('⏪')
                     .setStyle(ButtonStyle.Secondary)
 
-                const queueButtons = new ActionRowBuilder()
-                    .addComponents(buttonPrev)
-                    .addComponents(buttonNext)
+                if (curPage===totalPage){
+                    const queueButtons = new ActionRowBuilder()
+                        .addComponents(buttonPrev)
 
+                    await interaction.editReply({
+                        embeds:[queueEmbed],
+                        components:[queueButtons]
+                    });
 
-                await interaction.editReply({
-                    embeds:[queueEmbed],
-                    components:[queueButtons]
-                });
+                }else if(curPage===1){
+                    const queueButtons = new ActionRowBuilder()
+                        .addComponents(buttonNext)
+
+                    await interaction.editReply({
+                        embeds:[queueEmbed],
+                        components:[queueButtons]
+                    });
+                }
+                else {
+                    const queueButtons = new ActionRowBuilder()
+                        .addComponents(buttonPrev)
+                        .addComponents(buttonNext)
+
+                    await interaction.editReply({
+                        embeds:[queueEmbed],
+                        components:[queueButtons]
+                    });
+                }
 
             }else if (interaction.customId==="previous"){
                 await interaction.deferReply();
@@ -113,7 +130,7 @@ const MusicPlayer = () => {
                                     song.name
                                 } - \`${song.formattedDuration}\``,
                         )
-                        .slice(startIndex, endIndex)
+                        .slice(startIndex, endIndex+1)
                         .join('\n')}`)
                     .setFooter({
                         text:`page ${curPage} of ${totalPage}`
@@ -129,17 +146,34 @@ const MusicPlayer = () => {
                     .setLabel('⏪')
                     .setStyle(ButtonStyle.Secondary)
 
-                const queueButtons = new ActionRowBuilder()
-                    .addComponents(buttonPrev)
-                    .addComponents(buttonNext)
+                if (curPage===totalPage){
+                    const queueButtons = new ActionRowBuilder()
+                        .addComponents(buttonPrev)
 
+                    await interaction.editReply({
+                        embeds:[queueEmbed],
+                        components:[queueButtons]
+                    });
 
-                await interaction.editReply({
-                    embeds:[queueEmbed],
-                    components:[queueButtons]
-                });
+                }else if(curPage===1){
+                    const queueButtons = new ActionRowBuilder()
+                        .addComponents(buttonNext)
 
+                    await interaction.editReply({
+                        embeds:[queueEmbed],
+                        components:[queueButtons]
+                    });
+                }
+                else {
+                    const queueButtons = new ActionRowBuilder()
+                        .addComponents(buttonPrev)
+                        .addComponents(buttonNext)
 
+                    await interaction.editReply({
+                        embeds:[queueEmbed],
+                        components:[queueButtons]
+                    });
+                }
 
             }
         }
@@ -147,7 +181,6 @@ const MusicPlayer = () => {
 
 
     client.on('interactionCreate',async (interaction)=>{
-
 
         const queue = client.Distube.getQueue(interaction);
 
@@ -184,60 +217,91 @@ const MusicPlayer = () => {
                         });
                         return;
                     }
-
-
                     break;
+
                 case "queue":
                     await interaction.deferReply()
 
-                    if (!queue){
+                    if (interaction.options.get("options")===null){
+                        if (!queue){
 
-                        await interaction.editReply({
-                            content: "🎵 Nothing to play right now"
-                        })
-                    }else {
-
-                        curPage=1
-                        totalPage=Math.ceil(queue.songs.length/10);
-                        endIndex=Math.min(startIndex+10-1,queue.songs.length-1)
-                        console.log(startIndex,endIndex)
-
-                        const buttonNext = new ButtonBuilder()
-                            .setCustomId("next")
-                            .setLabel('⏩')
-                            .setStyle(ButtonStyle.Secondary)
-
-                        const buttonPrev = new ButtonBuilder()
-                            .setCustomId("previous")
-                            .setLabel('⏪')
-                            .setStyle(ButtonStyle.Secondary)
-
-                        const queueButtons = new ActionRowBuilder()
-                            .addComponents(buttonPrev)
-                            .addComponents(buttonNext)
-
-                        const queueEmbed = new MessageEmbed()
-                            .setTitle("**🎵 Current queue:**")
-                            .setColor("Red")
-                            .setDescription(`${queue.songs
-                                .map(
-                                    (song, id) =>
-                                        `**${id ? id : 'Playing'}**. ${
-                                            song.name
-                                        } - \`${song.formattedDuration}\``,
-                                )
-                                .slice(0, 9)
-                                .join('\n')}`)
-                            .setFooter({
-                                text:`page ${curPage} of ${totalPage}`
+                            await interaction.editReply({
+                                content: "🎵 Nothing to play right now"
                             })
+                        }else {
+                            curPage=1
+                            totalPage=Math.ceil(queue.songs.length/10);
+                            endIndex=Math.min(startIndex+10-1,queue.songs.length-1)
+                            console.log(startIndex,endIndex)
 
-                        await interaction.editReply({
-                            embeds: [queueEmbed],
-                            components: [queueButtons]
-                        })
+                            const buttonNext = new ButtonBuilder()
+                                .setCustomId("next")
+                                .setLabel('⏩')
+                                .setStyle(ButtonStyle.Secondary)
+
+                            const buttonPrev = new ButtonBuilder()
+                                .setCustomId("previous")
+                                .setLabel('⏪')
+                                .setStyle(ButtonStyle.Secondary)
+
+
+                            const queueEmbed = new MessageEmbed()
+                                .setTitle("**🎵 Current queue:**")
+                                .setColor("Red")
+                                .setDescription(`${queue.songs
+                                    .map(
+                                        (song, id) =>
+                                            `**${id ? id : 'Playing'}**. ${
+                                                song.name
+                                            } - \`${song.formattedDuration}\``,
+                                    )
+                                    .slice(0, 10)
+                                    .join('\n')}`)
+                                .setFooter({
+                                    text:`page ${curPage} of ${totalPage}`
+                                })
+
+                            if (curPage===totalPage){
+                                const queueButtons = new ActionRowBuilder()
+                                    .addComponents(buttonPrev)
+
+                                await interaction.editReply({
+                                    embeds:[queueEmbed],
+                                    components:[queueButtons]
+                                });
+
+                            }else if(curPage===1){
+                                const queueButtons = new ActionRowBuilder()
+                                    .addComponents(buttonNext)
+
+                                await interaction.editReply({
+                                    embeds:[queueEmbed],
+                                    components:[queueButtons]
+                                });
+                            }
+                            else {
+                                const queueButtons = new ActionRowBuilder()
+                                    .addComponents(buttonPrev)
+                                    .addComponents(buttonNext)
+
+                                await interaction.editReply({
+                                    embeds:[queueEmbed],
+                                    components:[queueButtons]
+                                });
+                            }
+                        }
+                    }else{
+                        switch (interaction.options.get("options").value){
+                            case "clear":
+                                await queue.stop()
+                                await interaction.editReply({
+                                    content: "🎵 queue cleared!"
+                                })
+                                break;
+                        }
                     }
                     break;
+
                 case "skip":
 
                     if (!queue){
@@ -255,7 +319,6 @@ const MusicPlayer = () => {
                             content:"🎵 song skipped"
                         })
                     }
-
                     break;
 
                 case "repeat":
@@ -286,8 +349,8 @@ const MusicPlayer = () => {
                             content:`🎵 Set repeat mode to : **${mode}**`
                         })
                     }
-
                     break;
+
                case "search":
                         await interaction.deferReply();
                         if (result){
@@ -352,7 +415,6 @@ const MusicPlayer = () => {
                             .addComponents(button4)
                             .addComponents(button5)
 
-
                        interaction.editReply({
                            embeds:[searchEmbed],
                            components:[searchButtons]
@@ -360,15 +422,12 @@ const MusicPlayer = () => {
                        ).then(()=>{
                            setTimeout(()=>result=undefined,30000)
                        })
-
-
-
                     break;
+
                 case "lyrics":
                     await interaction.deferReply();
                     const query = interaction.options.get("song").value
                     const api = new Genius.Client(GENIUS_TOKEN)
-
                     const song = await api.songs.search(query)
                     const firstSong = song[0];
 
@@ -379,8 +438,6 @@ const MusicPlayer = () => {
 
                         return;
                     }
-
-
                     let lyrics = await firstSong.lyrics()
 
                     if (lyrics.length>2000){
@@ -396,8 +453,6 @@ const MusicPlayer = () => {
                         })
                         .setDescription(lyrics)
                         .setThumbnail(firstSong.image)
-
-
                     await interaction.editReply({
                         embeds:[embed]
                     })
@@ -406,7 +461,6 @@ const MusicPlayer = () => {
 
         }
     })
-
 
     client.Distube.on('playSong',(queue,song)=>{
 

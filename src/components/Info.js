@@ -25,6 +25,7 @@ const Info = () => {
                                     '"/skip" to skip a music\n' +
                                     '"/repeat {mode}" set repeat mode\n' +
                                     '"/queue" to check queue list\n' +
+                                    '"/queue {options}" queue options, currently have only clear option\n' +
                                     '"/search {title}" to give top 5 search and choose 1 to 5 to play\n' +
                                     '"/lyrics {song}" to search song lyrics\n' +
                                     '\n' +
